@@ -134,7 +134,6 @@ String rootPage(PageArgument& args) {
 
     sprintf(line,"<input type=\"checkbox\" id=\"r%02d\" name=\"n%02d\" %s> <label for=\"r%02d\">%s</label><br>\n",i,i, relstat[i]?"checked":""  ,i,relays[i][0].as<const char*>());
     buf1+=String(line);
-    Serial.println(buf1);
 
     Serial.println("pins:");
     pinMode(relays[i][1],OUTPUT);
@@ -160,14 +159,14 @@ bool handleAcs(HTTPMethod method, String uri) {
   }
   else{
     currentUri=uri;
-    page.clearElement();          // Discards the remains of PageElement.
+    page.clearElements();          // Discards the remains of PageElement.
     page.addElement(elm);         // Register PageElement for current access.
 
     Serial.println("Request:" + uri);
 
     if(uri=="/"){
       page.setUri(uri.c_str());
-      elm.setMold(PSTR(
+      elm.setMold(F(
         "<html>"
         "<body>"
         "{{ROOT}}"
