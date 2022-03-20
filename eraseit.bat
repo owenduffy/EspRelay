@@ -1,6 +1,8 @@
 
 call vars.bat
 
-"%ESPTOOL%" -p %COM% -b %SPEED% erase_flash
+"%ESPTOOL%" -c %CHIP% -p %COM% -b %SPEED% erase_flash
+
+pause
 
 exit /b

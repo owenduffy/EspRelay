@@ -5,9 +5,11 @@ mklittlefs -d 2 -c data -b 4096 -p 256 -s 0x10000 littlefs.bin
 
 rem exit /b
 
-rem 4MB (FS:1MB OTA:~1019KB)
-"%ESPTOOL%" -p %COM% -b %SPEED% write_flash 0x0eb000 littlefs.bin
-rem "%ESPTOOL%" -p %COM% -b 921600 write_flash 0x200000 spiffs.bin
+rem 1MB (FS:64K OTA:~407KB)
+"%ESPTOOL%" -c %CHIP% -p %COM% -b %SPEED% write_flash 0x0eb000 littlefs.bin
+rem ??? "%ESPTOOL%" -p %COM% -b 921600 write_flash 0x200000 spiffs.bin
+
+pause
 
 exit /b
 
