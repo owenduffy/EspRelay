@@ -2,6 +2,8 @@
 //WiFi relay controllers
 //Copyright: Owen Duffy 2022/03/20
 
+#define VERSION "0.1"
+
 // Import required libraries
 #include <LittleFS.h>
 
@@ -21,6 +23,7 @@ WebServer  server;
 
 #include <WiFiManager.h>
 WiFiManager wifiManager;
+//char chipid[]=Serial.println(wifiManager.getInfoData("chipid"));
 
 //Need global visibility of the config stuff
 //StaticJsonDocument<2000> doc; //on stack  arduinojson.org/assistant
@@ -37,44 +40,42 @@ char hostname[20] = "esp8266-relay01";
 //----------------------------------------------------------------------------------
 int config(const char* cfgfile){
   int i,n;
-  Serial.println(F("config file"));
+  Serial.print(F("config file: "));
   Serial.println(cfgfile);
   if (LittleFS.exists(cfgfile)){
     //file exists, reading and loading
-    Serial.println(F("Reading config file"));
+    Serial.println(F("Reading config file..."));
     delay(1000);
     File configFile=LittleFS.open(cfgfile,"r");
     if (configFile){
-      Serial.println(F("Opened config file"));
+      Serial.println(F("Opened config file..."));
       size_t size=configFile.size();
       // Allocate a buffer to store contents of the file.
       static char* buf=new char[size];
       configFile.readBytes(buf,size);
       DeserializationError error = deserializeJson(doc, buf);
       if (error) {
-          Serial.println(F("Failed to load JSON config"));
+          Serial.println(F("Failed to load JSON config."));
           while(1);
       }
       json = doc.as<JsonObject>();
-      Serial.println(F("\nParsed json"));
+      Serial.println(F("\nParsed json."));
       strncpy(hostname,json[F("hostname")],sizeof(hostname));
       hostname[sizeof(hostname)-1]='\0';
+      Serial.print(F("Hostname: "));
       Serial.println(hostname);
 
       // extract the values
       relays=json["relays"];
       int n=relays.size();
       relstat=new unsigned char[size];
-
-
-      //for (String label : labels) {
       for(i=0;i<n;i++){
         relstat[i]=relays[i][2].as<int>();
       }
       return 0;
     }
   }
-  Serial.println(F("No config file"));
+  Serial.println(F("Error: config file not found."));
   return 1;
 }
 //----------------------------------------------------------------------------------
@@ -94,7 +95,7 @@ String rootPage(PageArgument& args) {
         relstat[i]=0;
     }
   }
-  sprintf(line,"<h1>ESP Relay controller</h1><h2>%s</h2>\n",hostname);
+  sprintf(line,"<h1>ESP Relay controller (v%s)</h1><h2>%s</h2>\n",VERSION,hostname);
   buf1+=String(line);
   buf1+="<form method=\"get\" action=\"/\">\n";
 
@@ -152,6 +153,7 @@ void setup(){
   WiFi.mode(WIFI_OFF);
   // Serial port for debugging purposes
   Serial.begin(115200);
+  Serial.print("\n\nStarting... \n\n");
   if (LittleFS.begin()){
     Serial.println(F("Mounted file system"));
     config("config.cfg");
@@ -163,11 +165,10 @@ void setup(){
   WiFi.hostname(hostname);
   wifiManager.setDebugOutput(true);
   wifiManager.setHostname(hostname);
-  wifiManager.setConfigPortalTimeout(300);
-  Serial.println(F("Connecting..."));
-  Serial.print(F(" connecting to "));
+  wifiManager.setConfigPortalTimeout(120);
+  Serial.print(F("Connecting to ... "));
   Serial.println(WiFi.SSID());
-  wifiManager.autoConnect("ESP8266-Relay01");
+  wifiManager.autoConnect(hostname);
   Serial.println(WiFi.localIP());
 
   // Prepare dynamic web page
