@@ -30,6 +30,10 @@ WiFiManager wifiManager;
 DynamicJsonDocument doc(1024);//arduinojson.org/assistant
 JsonObject json;
 JsonArray relays;
+IPAddress ipaddress(0,0,0,0);
+IPAddress ipmask(0,0,0,0);
+IPAddress ipgateway(0,0,0,0);
+
 unsigned char* relstat;
 
 char name[21]="dev name";
@@ -62,10 +66,18 @@ int config(const char* cfgfile){
       Serial.println(F("\nParsed json."));
       strncpy(hostname,json[F("hostname")],sizeof(hostname));
       hostname[sizeof(hostname)-1]='\0';
+
+      JsonArray ip4;
+      ip4=json["staticip"]["address"];
+      ipaddress=IPAddress(ip4[0],ip4[1],ip4[2],ip4[3]);
+      ip4=json["staticip"]["mask"];
+      ipmask=IPAddress(ip4[0],ip4[1],ip4[2],ip4[3]);
+      ip4=json["staticip"]["gateway"];
+      ipgateway=IPAddress(ip4[0],ip4[1],ip4[2],ip4[3]);
+
       Serial.print(F("Hostname: "));
       Serial.println(hostname);
 
-      // extract the values
       relays=json["relays"];
       int n=relays.size();
       relstat=new unsigned char[size];
@@ -163,6 +175,13 @@ void setup(){
     while(1);
   }
   WiFi.hostname(hostname);
+  // Configures static IP address
+  if(ipaddress){
+    Serial.println("Configure static IP");
+    if(!WiFi.config(ipaddress,ipgateway,ipmask)){
+      Serial.println("STA Failed to configure");
+    }
+  }
   wifiManager.setDebugOutput(true);
   wifiManager.setHostname(hostname);
   wifiManager.setConfigPortalTimeout(120);
