@@ -35,6 +35,7 @@ IPAddress ipmask(0,0,0,0);
 IPAddress ipgateway(0,0,0,0);
 
 unsigned char* relstat;
+char username[21]="",password[21]="";
 
 char name[21]="dev name";
 PageElement  elm;
@@ -64,8 +65,19 @@ int config(const char* cfgfile){
       }
       json = doc.as<JsonObject>();
       Serial.println(F("\nParsed json."));
-      strncpy(hostname,json[F("hostname")],sizeof(hostname));
-      hostname[sizeof(hostname)-1]='\0';
+
+      if(json[F("username")]){
+        strncpy(username,json[F("username")],sizeof(username));
+        username[sizeof(username)-1]='\0';
+      }
+      if(json[F("password")]){
+        strncpy(password,json[F("password")],sizeof(password));
+        password[sizeof(password)-1]='\0';
+      }
+      if(json[F("hostname")]){
+        strncpy(hostname,json[F("hostname")],sizeof(hostname));
+        hostname[sizeof(hostname)-1]='\0';
+      }
 
       JsonArray ip4;
       ip4=json["staticip"]["address"];
@@ -191,6 +203,7 @@ void setup(){
   Serial.println(WiFi.localIP());
 
   // Prepare dynamic web page
+  if(username[0]!='\0') page.authentication(username,password,DIGEST_AUTH,"EspRelay");
   page.exitCanHandle(handleAcs);    // Handles for all requests.
   page.insert(server);
 
@@ -199,7 +212,7 @@ void setup(){
   Serial.println(F("WiFi connected."));
   Serial.println(F("IP address: "));
   Serial.println(WiFi.localIP());
-  Serial.println(F("Hostname: "));
+  Serial.print(F("Hostname: "));
 #if defined(ARDUINO_ARCH_ESP8266)
   Serial.println(WiFi.hostname());
 #elif defined(ARDUINO_ARCH_ESP32)
