@@ -17,31 +17,29 @@ ESP8266WebServer  server;
 WebServer  server;
 #endif
 #define ARDUINOJSON_USE_DOUBLE 1
+#define ARDUINOJSON_USE_LONG_LONG 0
 #include <ArduinoJson.h>
 #include <PageBuilder.h>
 #define PAGEBUFRESSIZE 3000
 
 #include <WiFiManager.h>
 WiFiManager wifiManager;
-//char chipid[]=Serial.println(wifiManager.getInfoData("chipid"));
 
 //Need global visibility of the config stuff
-//StaticJsonDocument<2000> doc; //on stack  arduinojson.org/assistant
 DynamicJsonDocument doc(1024);//arduinojson.org/assistant
 JsonObject json;
 JsonArray relays;
 IPAddress ipaddress(0,0,0,0);
 IPAddress ipmask(0,0,0,0);
 IPAddress ipgateway(0,0,0,0);
+char username[21]="",password[21]="",ssid[21]="",wifipwd[21]="";
 
 unsigned char* relstat;
-char username[21]="",password[21]="";
-
-char name[21]="dev name";
+char name[21]="";
 PageElement  elm;
 PageBuilder  page;
 String currentUri;
-char hostname[20] = "esp8266-relay01";
+char hostname[21] = "EspRelay";
 //----------------------------------------------------------------------------------
 int config(const char* cfgfile){
   int i,n;
@@ -66,17 +64,25 @@ int config(const char* cfgfile){
       json = doc.as<JsonObject>();
       Serial.println(F("\nParsed json."));
 
-      if(json[F("username")]){
-        strncpy(username,json[F("username")],sizeof(username));
+      if(json[F("login")][F("user")]){
+        strncpy(username,json[F("login")][F("user")],sizeof(username));
         username[sizeof(username)-1]='\0';
       }
-      if(json[F("password")]){
-        strncpy(password,json[F("password")],sizeof(password));
+      if(json[F("login")][F("pwd")]){
+        strncpy(password,json[F("login")][F("pwd")],sizeof(password));
         password[sizeof(password)-1]='\0';
       }
       if(json[F("hostname")]){
         strncpy(hostname,json[F("hostname")],sizeof(hostname));
         hostname[sizeof(hostname)-1]='\0';
+      }
+      if(json[F("wifi")][F("ssid")]){
+        strncpy(ssid,json[F("wifi")][F("ssid")],sizeof(ssid));
+        ssid[sizeof(ssid)-1]='\0';
+      }
+      if(json[F("wifi")][F("pwd")]){
+        strncpy(wifipwd,json[F("wifi")][F("pwd")],sizeof(wifipwd));
+        wifipwd[sizeof(wifipwd)-1]='\0';
       }
 
       JsonArray ip4;
@@ -180,26 +186,41 @@ void setup(){
   Serial.print("\n\nStarting... \n\n");
   if (LittleFS.begin()){
     Serial.println(F("Mounted file system"));
-    config("config.cfg");
+    config("/config.cfg");
   }
   else{
     Serial.println(F("Failed to mount FS"));
     while(1);
   }
   WiFi.hostname(hostname);
-  // Configures static IP address
   if(ipaddress){
     Serial.println("Configure static IP");
     if(!WiFi.config(ipaddress,ipgateway,ipmask)){
       Serial.println("STA Failed to configure");
     }
   }
-  wifiManager.setDebugOutput(true);
-  wifiManager.setHostname(hostname);
-  wifiManager.setConfigPortalTimeout(120);
-  Serial.print(F("Connecting to ... "));
+  if(ssid[0]!='\0'){
+    Serial.println(F("Configure credentials from config file"));
+    Serial.println(ssid);
+    Serial.println(wifipwd);
+    WiFi.begin(ssid, wifipwd);
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      delay(1000);
+      Serial.print(".");
+    }
+  Serial.println();
+  Serial.print("Connected, IP address: ");
+  Serial.println(WiFi.localIP());
+  }
+  else{
+    wifiManager.setDebugOutput(true);
+    wifiManager.setHostname(hostname);
+    wifiManager.setConfigPortalTimeout(120);
+    wifiManager.autoConnect(hostname);
+  }
+  Serial.print(F("Connecting to "));
   Serial.println(WiFi.SSID());
-  wifiManager.autoConnect(hostname);
   Serial.println(WiFi.localIP());
 
   // Prepare dynamic web page
