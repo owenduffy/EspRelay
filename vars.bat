@@ -1,5 +1,7 @@
-set COM=com8
-echo COM: %COM%
+
+if #%PORT%==# set PORT=COM8
+
+echo COM: %PORT%
 set ESPTOOL=D:\Users\owen\AppData\Local\Programs\Python\Python39\scripts\esptool.exe
 echo ESPTOOL: %ESPTOOL%
 set SPEED=921600
