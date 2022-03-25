@@ -1,5 +1,6 @@
 
 call vars.bat
+call bootapppath.bat
 
 set CHIP=%1
 
@@ -8,7 +9,6 @@ if #%1==#ESP32 goto ESP32
 goto end
 
 :ESP32
-set BOOTAPPPATH=C:\Users\owen\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.2/tools/partitions/
 set BIN=EspRelay.ino.esp32.merged.bin
 
 %ESPTOOL% version
