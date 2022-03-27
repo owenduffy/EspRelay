@@ -6,3 +6,9 @@ set ESPTOOL=D:\Users\owen\AppData\Local\Programs\Python\Python39\scripts\esptool
 echo ESPTOOL: %ESPTOOL%
 set SPEED=921600
 set CHIP=ESP8266
+
+awk "BEGIN{FS=\"\\\"\"} /^^ *#define *VERSION *\".*\"/{printf(\"%%s\n\",$2)>VERSION.txt;exit}" EspRelay.ino
+FOR /F %%V IN (VERSION.TXT) do SET VERSION=%%V
+ECHO VERSION=%VERSION%
+
+exit /b
