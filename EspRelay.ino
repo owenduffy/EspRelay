@@ -28,6 +28,7 @@ WiFiManager wifiManager;
 //Need global visibility of the config stuff
 DynamicJsonDocument doc(1024);//arduinojson.org/assistant
 JsonObject json;
+int cfgver=0;
 JsonArray relays;
 IPAddress ipaddress(0,0,0,0);
 IPAddress ipmask(0,0,0,0);
@@ -64,6 +65,13 @@ int config(const char* cfgfile){
       json = doc.as<JsonObject>();
       Serial.println(F("\nParsed json."));
 
+      if(json[F("cfgver")]){
+        cfgver=json[F("cfgver")];
+      }
+      if(cfgver!=1){
+        Serial.print(F("Incompatible config.cfg version: "));
+        Serial.println(cfgver);
+      }
       if(json[F("login")][F("user")]){
         strncpy(username,json[F("login")][F("user")],sizeof(username));
         username[sizeof(username)-1]='\0';
