@@ -126,9 +126,8 @@ String rootPage(PageArgument& args) {
   if (server.hasArg("update")){
     for(i=0;i<n;i++){
       sprintf(line,"n%02d",i);
-      if (server.hasArg(line)){
-        relstat[i]=1;
-      }
+      if(server.hasArg(line))
+        relstat[i]=server.arg(line)=="on";
       else
         relstat[i]=0;
     }
@@ -226,6 +225,12 @@ void setup(){
     wifiManager.setHostname(hostname);
     wifiManager.setConfigPortalTimeout(120);
     wifiManager.autoConnect(hostname);
+    if(WiFi.status()!=WL_CONNECTED)
+    {
+      Serial.println("WiFi autoconnect failed, resetting...");
+      ESP.restart(); //soft reboot
+      delay(1000);
+    }
   }
   Serial.print(F("Connecting to "));
   Serial.println(WiFi.SSID());
