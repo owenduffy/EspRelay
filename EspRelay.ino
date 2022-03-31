@@ -11,10 +11,12 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 ESP8266WebServer  server;
+#include <ESP8266mDNS.h>
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
 #include <WebServer.h>
 WebServer  server;
+#include <ESPmDNS.h>
 #endif
 #define ARDUINOJSON_USE_DOUBLE 1
 #define ARDUINOJSON_USE_LONG_LONG 0
@@ -252,9 +254,15 @@ void setup(){
 #elif defined(ARDUINO_ARCH_ESP32)
   Serial.println(WiFi.getHostname());
 #endif
+  if (!MDNS.begin(hostname)) {             // Start the mDNS responder for esp8266.local
+    Serial.println("Error setting up MDNS responder!");
+  }
+  Serial.println("mDNS responder started");
   server.begin();
+  MDNS.addService("_http", "_tcp", 80);
 }
 //----------------------------------------------------------------------------------
 void loop(){
+  MDNS.update();
   server.handleClient();
 }
