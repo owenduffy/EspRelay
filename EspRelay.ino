@@ -2,9 +2,10 @@
 //WiFi relay controllers
 //Copyright: Owen Duffy 2022/03/20
 
-#define VERSION "0.1"
+#define VERSION "0.01"
 
 // Import required libraries
+#include <string>
 #include <LittleFS.h>
 
 #if defined(ARDUINO_ARCH_ESP8266)
@@ -31,13 +32,13 @@ WiFiManager wifiManager;
 DynamicJsonDocument doc(1024);//arduinojson.org/assistant
 JsonObject json;
 int cfgver=0;
-JsonArray relays;
+JsonArray outputs,inputs;
 IPAddress ipaddress(0,0,0,0);
 IPAddress ipmask(0,0,0,0);
 IPAddress ipgateway(0,0,0,0);
 char username[21]="",password[21]="",ssid[21]="",wifipwd[21]="";
 
-unsigned char* relstat;
+unsigned char* outstate;
 char name[21]="";
 PageElement  elm;
 PageBuilder  page;
@@ -106,12 +107,13 @@ int config(const char* cfgfile){
       Serial.print(F("Hostname: "));
       Serial.println(hostname);
 
-      relays=json["relays"];
-      int n=relays.size();
-      relstat=new unsigned char[size];
+      outputs=json["outputs"];
+      int n=outputs.size();
+      outstate=new unsigned char[size];
       for(i=0;i<n;i++){
-        relstat[i]=relays[i][2].as<int>();
+        outstate[i]=outputs[i][3].as<int>();
       }
+      inputs=json["inputs"];
       return 0;
     }
   }
@@ -124,31 +126,60 @@ String rootPage(PageArgument& args) {
   String buf1="";
   char line[300];
   buf1.reserve(PAGEBUFRESSIZE);
-  n=relays.size();
+  n=outputs.size();
   if (server.hasArg("update")){
     for(i=0;i<n;i++){
       sprintf(line,"n%02d",i);
       if(server.hasArg(line))
-        relstat[i]=server.arg(line)=="on";
+        outstate[i]=server.arg(line)=="on";
       else
-        relstat[i]=0;
+        outstate[i]=0;
+      digitalWrite(outputs[i][1],outstate[i]!=outputs[i][2].as<int>());
+      pinMode(outputs[i][1],OUTPUT);
     }
   }
+
   sprintf(line,"<h1>ESP Relay controller (v%s)</h1><h2>%s</h2>\n",VERSION,hostname);
   buf1+=String(line);
+  buf1+="<!-- status={\"outputs\":[";
+  for(i=0;i<outputs.size();i++){
+    buf1+=outstate[i]?"1":"0";
+    if(i<outputs.size()-1)buf1+=",";
+}
+  buf1+="],";
+  buf1+="\"inputs\":[";
+  for(i=0;i<inputs.size();i++){
+    buf1+=digitalRead(inputs[i][1])!=inputs[i][2].as<int>()?"1":"0";
+    if(i<inputs.size()-1)buf1+=",";
+  }
+  buf1+="]} -->\n";
+
   buf1+="<form method=\"get\" action=\"/\">\n";
 
+  n=outputs.size();
+  if(n>0){
   if(n>1){
-    buf1+=F("<input type='button' value='Check all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox'){f.elements[x].checked=true;}}\">\n");
-    buf1+=F("<input type='button' value='Uncheck all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox'){f.elements[x].checked=false;}}\">\n");
+      buf1+=F("<input type='button' value='Check all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox'){f.elements[x].checked=true;}}\">\n");
+      buf1+=F("<input type='button' value='Uncheck all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox'){f.elements[x].checked=false;}}\">\n");
+    }
+    buf1+=F("<hr>\n");
+    for(i=0;i<n;i++){
+      sprintf(line,"<input type=\"checkbox\" id=\"r%02d\" name=\"n%02d\"%s><label for=\"r%02d\">%s</label><br>\n",i,i,outstate[i]?" checked":""  ,i,outputs[i][0].as<const char*>());
+      buf1+=String(line);
+      pinMode(outputs[i][1],OUTPUT);
+      digitalWrite(outputs[i][1],outstate[i]);
+   }
   }
-  buf1+=F("<hr>\n");
-  for(i=0;i<n;i++){
-    sprintf(line,"<input type=\"checkbox\" id=\"r%02d\" name=\"n%02d\"%s><label for=\"r%02d\">%s</label><br>\n",i,i, relstat[i]?" checked":""  ,i,relays[i][0].as<const char*>());
-    buf1+=String(line);
-    pinMode(relays[i][1],OUTPUT);
-    digitalWrite(relays[i][1],relstat[i]);
+
+  n=inputs.size();
+  if(n>0){
+    buf1+=F("<hr>\n");
+    for(i=0;i<n;i++){
+      sprintf(line,"<input type=\"checkbox\" id=\"i%02d\" name=\"ni%02d\"%s disabled><label for=\"i%02d\">%s</label><br>\n",i,i,digitalRead(inputs[i][1])!=inputs[i][2].as<int>()?" checked":""  ,i,inputs[i][0].as<const char*>());
+      buf1+=String(line);
+    }
   }
+
   buf1+=F("<hr>\n<input type=\"hidden\" id=\"update\" name=\"update\" value=\"\">\n<input type=\"button\" value=\"Read\" onclick=\"location.href='/';\">\n<input type=\"submit\" value=\"Write\">\n</form>\n");
   return  buf1;
 }
