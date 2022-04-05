@@ -7,7 +7,6 @@ if #%1==#ESP8266 goto ESP8266
 if #%1==#ESP32 goto ESP32
 goto end
 
-rem 10000 170000  Writing at 0x00290000
 :ESP8266
 echo Processing ESP8266
 set FSSIZE=0x10000
@@ -16,8 +15,8 @@ goto makeit
 
 :ESP32
 echo Processing ESP32
-set FSSIZE=0x170000
-set FSLOC=0x0290000
+set FSSIZE=0x30000
+set FSLOC=0x3d0000
 goto makeit
 
 :makeit
