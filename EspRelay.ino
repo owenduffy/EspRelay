@@ -29,7 +29,7 @@ WebServer  server;
 WiFiManager wifiManager;
 
 //Need global visibility of the config stuff
-DynamicJsonDocument doc(1024);//arduinojson.org/assistant
+DynamicJsonDocument doc(4096);//arduinojson.org/assistant
 JsonObject json;
 int cfgver=0;
 JsonArray outputs,inputs;
@@ -111,7 +111,9 @@ int config(const char* cfgfile){
       int n=outputs.size();
       outstate=new unsigned char[size];
       for(i=0;i<n;i++){
-        outstate[i]=outputs[i][3].as<int>();
+        outstate[i]=outputs[i][3];
+        digitalWrite(outputs[i][1],outstate[i]!=outputs[i][2].as<int>());
+        pinMode(outstate[i],OUTPUT);
       }
       inputs=json["inputs"];
       return 0;
@@ -166,8 +168,6 @@ String rootPage(PageArgument& args) {
     for(i=0;i<n;i++){
       sprintf(line,"<input type=\"checkbox\" id=\"r%02d\" name=\"n%02d\"%s><label for=\"r%02d\">%s</label><br>\n",i,i,outstate[i]?" checked":""  ,i,outputs[i][0].as<const char*>());
       buf1+=String(line);
-      pinMode(outputs[i][1],OUTPUT);
-      digitalWrite(outputs[i][1],outstate[i]);
    }
   }
 
@@ -294,6 +294,8 @@ void setup(){
 }
 //----------------------------------------------------------------------------------
 void loop(){
+#if defined(ARDUINO_ARCH_ESP8266)
   MDNS.update();
+#endif
   server.handleClient();
 }
