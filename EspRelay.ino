@@ -141,7 +141,7 @@ String rootPage(PageArgument& args) {
     }
   }
 
-  sprintf(line,"<h1>ESP Relay controller (v%s)</h1><h2>%s</h2>\n",VERSION,hostname);
+  sprintf(line,"<h1>ESP Relay controller (v%s)</h1><h2>%s (LocalIP: %s)</h2>\n",VERSION,hostname,WiFi.localIP().toString().c_str());
   buf1+=String(line);
   buf1+="<!-- status={\"outputs\":[";
   for(i=0;i<outputs.size();i++){
