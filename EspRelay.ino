@@ -226,7 +226,7 @@ void setup(){
   Serial.print("\n\nStarting... \n\n");
   if (LittleFS.begin()){
     Serial.println(F("Mounted file system"));
-    config("/config.cfg");
+    config("/config.json");
   }
   else{
     Serial.println(F("Failed to mount FS"));
