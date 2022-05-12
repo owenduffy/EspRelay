@@ -121,6 +121,7 @@ int config(const char* cfgfile){
         pinMode(outstate[i],OUTPUT);
       }
       inputs=json["inputs"];
+      for(i=0;i<inputs.size();i++) if(inputs[i][3]) pinMode(inputs[i][1],INPUT_PULLUP);
       return 0;
     }
   }
