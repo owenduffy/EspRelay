@@ -2,7 +2,7 @@
 //WiFi relay controllers
 //Copyright: Owen Duffy 2022/03/20
 
-#define VERSION "0.01"
+#define VERSION "0.02"
 
 // Import required libraries
 #include <string>
@@ -37,6 +37,7 @@ IPAddress ipaddress(0,0,0,0);
 IPAddress ipmask(0,0,0,0);
 IPAddress ipgateway(0,0,0,0);
 char username[21]="",password[21]="",ssid[21]="",wifipwd[21]="";
+int wificfgpin=-1;
 
 unsigned char* outstate;
 char name[21]="";
@@ -72,8 +73,9 @@ int config(const char* cfgfile){
         cfgver=json[F("cfgver")];
       }
       if(cfgver!=1){
-        Serial.print(F("Incompatible config.cfg version: "));
+        Serial.print(F("Incompatible config.json version: "));
         Serial.println(cfgver);
+        return 1;
       }
       if(json[F("login")][F("user")]){
         strncpy(username,json[F("login")][F("user")],sizeof(username));
@@ -94,6 +96,9 @@ int config(const char* cfgfile){
       if(json[F("wifi")][F("pwd")]){
         strncpy(wifipwd,json[F("wifi")][F("pwd")],sizeof(wifipwd));
         wifipwd[sizeof(wifipwd)-1]='\0';
+      }
+      if(json[F("wificfgpin")]){
+        wificfgpin=json[F("wificfgpin")];
       }
 
       JsonArray ip4;
@@ -223,7 +228,8 @@ void setup(){
   WiFi.mode(WIFI_OFF);
   // Serial port for debugging purposes
   Serial.begin(115200);
-  Serial.print("\n\nStarting... \n\n");
+  Serial.print("\n\nStarting EspRelay v");
+  Serial.println(VERSION);
   if (LittleFS.begin()){
     Serial.println(F("Mounted file system"));
     config("/config.json");
@@ -257,7 +263,17 @@ void setup(){
     wifiManager.setDebugOutput(true);
     wifiManager.setHostname(hostname);
     wifiManager.setConfigPortalTimeout(120);
-    wifiManager.autoConnect(hostname);
+    if(wificfgpin>=0){
+      pinMode(wificfgpin,INPUT_PULLUP);
+      if(digitalRead(wificfgpin)==LOW){
+        Serial.println(F("Start on demand config portal."));
+        wifiManager.startConfigPortal(hostname);
+      }
+      else{
+        wifiManager.autoConnect(hostname);
+        Serial.println(F("Autoconnect, start config portal.")       );
+      }
+    }
     if(WiFi.status()!=WL_CONNECTED)
     {
       Serial.println("WiFi autoconnect failed, resetting...");
