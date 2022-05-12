@@ -97,7 +97,7 @@ int config(const char* cfgfile){
         strncpy(wifipwd,json[F("wifi")][F("pwd")],sizeof(wifipwd));
         wifipwd[sizeof(wifipwd)-1]='\0';
       }
-      if(json[F("wificfgpin")]){
+      if(json[F("wificfgpin")]>=0){
         wificfgpin=json[F("wificfgpin")];
       }
 
@@ -122,6 +122,7 @@ int config(const char* cfgfile){
       }
       inputs=json["inputs"];
       for(i=0;i<inputs.size();i++) if(inputs[i][3]) pinMode(inputs[i][1],INPUT_PULLUP);
+      if(wificfgpin>=0) pinMode(wificfgpin,INPUT_PULLUP);
       return 0;
     }
   }
@@ -265,16 +266,13 @@ void setup(){
     wifiManager.setDebugOutput(true);
     wifiManager.setHostname(hostname);
     wifiManager.setConfigPortalTimeout(120);
-    if(wificfgpin>=0){
-      pinMode(wificfgpin,INPUT_PULLUP);
-      if(digitalRead(wificfgpin)==LOW){
-        Serial.println(F("Start on demand config portal."));
-        wifiManager.startConfigPortal(hostname);
-      }
-      else{
-        wifiManager.autoConnect(hostname);
-        Serial.println(F("Autoconnect, start config portal.")       );
-      }
+    if(wificfgpin>=0 && digitalRead(wificfgpin)==LOW){
+      Serial.println(F("Start on demand config portal."));
+      wifiManager.startConfigPortal(hostname);
+    }
+    else{
+      wifiManager.autoConnect(hostname);
+      Serial.println(F("Autoconnect, start config portal.")       );
     }
     if(WiFi.status()!=WL_CONNECTED)
     {
@@ -316,4 +314,8 @@ void loop(){
   MDNS.update();
 #endif
   server.handleClient();
+  if(wificfgpin==0 && digitalRead(0)==LOW){
+    Serial.println(F("Start on demand config portal."));
+    wifiManager.startConfigPortal(hostname);
+    }
 }
