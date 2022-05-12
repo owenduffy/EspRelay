@@ -167,8 +167,8 @@ String rootPage(PageArgument& args) {
   n=outputs.size();
   if(n>0){
   if(n>1){
-      buf1+=F("<input type='button' value='Check all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox'){f.elements[x].checked=true;}}\">\n");
-      buf1+=F("<input type='button' value='Uncheck all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox'){f.elements[x].checked=false;}}\">\n");
+      buf1+=F("<input type='button' value='Check all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox' && !f.elements[x].disabled){f.elements[x].checked=true;}}\">\n");
+      buf1+=F("<input type='button' value='Uncheck all' onClick=\"javascript:f=this.form;for(x=0;x<f.elements.length;x++){if (f.elements[x].type=='checkbox' && !f.elements[x].disabled){f.elements[x].checked=false;}}\">\n");
     }
     buf1+=F("<hr>\n");
     for(i=0;i<n;i++){
