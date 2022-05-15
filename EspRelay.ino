@@ -122,6 +122,8 @@ int config(const char* cfgfile){
       inputs=json["inputs"];
       for(i=0;i<inputs.size();i++) if(inputs[i][3]) pinMode(inputs[i][1],INPUT_PULLUP);
       if(wificfgpin>=0) pinMode(wificfgpin,INPUT_PULLUP);
+      Serial.print(F("WiFi cfg GPIO: "));
+      Serial.println(wificfgpin);
       return 0;
     }
   }
