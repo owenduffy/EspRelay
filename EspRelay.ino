@@ -26,7 +26,6 @@ WebServer  server;
 #define PAGEBUFRESSIZE 3000
 
 #include <WiFiManager.h>
-WiFiManager wifiManager;
 
 //Need global visibility of the config stuff
 DynamicJsonDocument doc(4096);//arduinojson.org/assistant
@@ -263,6 +262,7 @@ void setup(){
   Serial.println(WiFi.localIP());
   }
   else{
+    WiFiManager wifiManager;
     wifiManager.setDebugOutput(true);
     wifiManager.setHostname(hostname);
     wifiManager.setConfigPortalTimeout(120);
@@ -315,7 +315,15 @@ void loop(){
 #endif
   server.handleClient();
   if(wificfgpin==0 && digitalRead(0)==LOW){
+    server.stop();
+    WiFi.mode(WIFI_OFF);
     Serial.println(F("Start on demand config portal."));
-    wifiManager.startConfigPortal(hostname);
-    }
+    WiFiManager wm;    
+    wm.setDebugOutput(true);
+    wm.setHostname(hostname);
+    wm.setConfigPortalTimeout(120);
+    wm.startConfigPortal(hostname);
+    ESP.restart(); //soft reboot
+    delay(1000);
+  }
 }
