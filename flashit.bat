@@ -25,13 +25,6 @@ goto end
 
 :ESP32WriteAll
 set BIN=EspRelay.ino.esp32.merged.bin
-goto ESP32Write
-
-:ESP32WriteUpdate
-set BIN=EspRelay.ino.esp32.bin
-goto ESP32Write
-
-:ESP32Write
 echo Write:
 @echo on
 %ESPTOOL% -c %CHIP% -b %SPEED% -p %PORT% write_flash 0x00000 %BIN%
@@ -40,8 +33,18 @@ echo Write:
 @echo off
 goto end
 
+:ESP32WriteUpdate
+set BIN=EspRelay.ino.esp32.bin
+echo Write:
+@echo on
+%ESPTOOL% -c %CHIP% -b %SPEED% -p %PORT% write_flash 0x10000 %BIN%
+@echo Verify:
+%ESPTOOL% -c %CHIP% -b %SPEED% -p %PORT% verify_flash 0x10000 %BIN%
+@echo off
+goto end
+
 :ESP8266
-set BIN=EspRelay.ino.generic.bin
+set BIN=EspRelay.ino.esp8266.generic.bin
 
 echo Version:
 %ESPTOOL% version
