@@ -2,7 +2,7 @@
 //WiFi relay controllers
 //Copyright: Owen Duffy 2022/03/20
 
-#define VERSION "0.02"
+#define VERSION "0.03"
 
 // Import required libraries
 #include <string>
@@ -46,7 +46,7 @@ String currentUri;
 char hostname[21] = "EspRelay";
 //----------------------------------------------------------------------------------
 int config(const char* cfgfile){
-  int i,n;
+  unsigned int i;
   Serial.print(F("config file: "));
   Serial.println(cfgfile);
   if (LittleFS.exists(cfgfile)){
@@ -112,7 +112,7 @@ int config(const char* cfgfile){
       Serial.println(hostname);
 
       outputs=json["outputs"];
-      int n=outputs.size();
+      unsigned int n=outputs.size();
       outstate=new unsigned char[size];
       for(i=0;i<n;i++){
         outstate[i]=outputs[i][3];
@@ -132,7 +132,7 @@ int config(const char* cfgfile){
 }
 //----------------------------------------------------------------------------------
 String rootPage(PageArgument& args) {
-  int i,n;
+  unsigned int i,n;
   String buf1="";
   char line[300];
   buf1.reserve(PAGEBUFRESSIZE);
