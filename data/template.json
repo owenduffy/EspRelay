@@ -14,14 +14,15 @@
     "user": "",
     "pwd": "pass"
   },
-  "relays": [
+  "outputs": [
     ["Flood lights", 0, false, false],
     ["Interior lights", 3, false, false],
     ["Security lights", 5, false, true],
     ["Ventilation", 4, false, false]
   ]
   "inputs": [
-    ["Flood", 0, false],
-    ["Int", 3, false]
-  ]
+    ["Flood", 0, false, false],
+    ["Int", 3, false, false]
+  ],
+  "wificfgpin": 0
 }

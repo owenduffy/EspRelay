@@ -14,8 +14,8 @@ if exist %workfile% goto tryworkfileagain
 rem get directory listing
 dir /ad /od /b %BOOTAPPPATH%* >%workfile%
 rem get the last entry 
-for /F %%f in (%workfile%) do set version=%%f
+for /F %%f in (%workfile%) do set ver=%%f
 del %workfile%
-echo version at %version%
-set BOOTAPPPATH=C:\Users\owen\AppData\Local\Arduino15\packages\esp32\hardware\esp32\%version%\tools\partitions\
+echo version at %ver%
+set BOOTAPPPATH=C:\Users\owen\AppData\Local\Arduino15\packages\esp32\hardware\esp32\%ver%\tools\partitions\
 echo BOOTAPPPATH=%BOOTAPPPATH%
