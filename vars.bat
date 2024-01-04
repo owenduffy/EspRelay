@@ -1,8 +1,9 @@
 
-if #%PORT%==# set PORT=COM8
+if #%PORT%==# set PORT=COM5
 
 echo COM: %PORT%
-set ESPTOOL=D:\Users\owen\AppData\Local\Programs\Python\Python39\scripts\esptool.exe
+rem set ESPTOOL=D:\Users\owen\AppData\Local\Programs\Python\Python39\scripts\esptool.exe
+set ESPTOOL=esptool.exe
 echo ESPTOOL: %ESPTOOL%
 set SPEED=921600
 set CHIP=ESP8266
